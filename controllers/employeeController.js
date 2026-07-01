@@ -1,24 +1,34 @@
-const employees = require("../data/employees");
+const Employee=require("../model/employeeSchema");
 
 
 // GET ALL EMPLOYEES
 
-const getAllEmployees = (req, res) => {
+const getAllEmployees = async (req, res) => {
 
-  res.status(200).json(employees);
+    try {
+
+        const employees = await Employee.find();
+
+        res.status(200).json(employees);
+
+    } catch (err) {
+
+        res.status(500).json({
+            message: err.message
+        });
+
+    }
 
 };
 
 
 // GET SINGLE EMPLOYEE
 
-const getEmployeeById = (req, res) => {
+const getEmployeeById =async (req, res) => {
 
-  const id = Number(req.params.id);
+  const id = req.params.id;
 
-  const employee = employees.find(
-    emp => emp.id === id
-  );
+  const employee = await Employee.findById(id);
 
   if (!employee) {
     return res.status(404).json({
@@ -33,84 +43,111 @@ const getEmployeeById = (req, res) => {
 
 // ADD EMPLOYEE
 
-const addEmployee = (req, res) => {
 
-  const { name, department, salary } = req.body;
+const addEmployee = async (req, res) => {
 
-  const newEmployee = {
-    id: employees.length + 1,
-    name,
-    department,
-    salary
-  };
+  try {
 
-  employees.push(newEmployee);
+    const { name, email, department, salary } = req.body;
 
-  res.status(201).json({
-    message: "Employee Added Successfully",
-    employee: newEmployee
-  });
+    const newEmployee = new Employee({
+      name,
+      email,
+      department,
+      salary
+    });
+
+    await newEmployee.save();
+
+    res.status(201).json({
+      message: "Employee Added Successfully",
+      employee: newEmployee
+    });
+
+  } catch (err) {
+
+    res.status(500).json({
+      message: err.message
+    });
+
+  }
 
 };
 
 
 // UPDATE EMPLOYEE
 
-const updateEmployee = (req, res) => {
+const updateEmployee = async (req, res) => {
 
-  const id = Number(req.params.id);
+  try {
 
-  const employee = employees.find(
-    emp => emp.id === id
-  );
+    const id = req.params.id;
 
-  if (!employee) {
-    return res.status(404).json({
-      message: "Employee Not Found"
+    const employee = await Employee.findById(id);
+
+    if (!employee) {
+      return res.status(404).json({
+        message: "Employee Not Found"
+      });
+    }
+
+    employee.name = req.body.name || employee.name;
+
+    employee.email = req.body.email || employee.email;
+
+    employee.department = req.body.department || employee.department;
+
+    employee.salary = req.body.salary || employee.salary;
+
+    await employee.save();
+
+    res.status(200).json({
+      message: "Employee Updated Successfully",
+      employee
     });
+
+  } catch (err) {
+
+    res.status(500).json({
+      message: err.message
+    });
+
   }
-
-  employee.name =
-    req.body.name || employee.name;
-
-  employee.department =
-    req.body.department || employee.department;
-
-  employee.salary =
-    req.body.salary || employee.salary;
-
-  res.status(200).json({
-    message: "Employee Updated Successfully",
-    employee
-  });
 
 };
 
 
 // DELETE EMPLOYEE
 
-const deleteEmployee = (req, res) => {
+const deleteEmployee = async (req, res) => {
 
-  const id = Number(req.params.id);
+  try {
 
-  const index = employees.findIndex(
-    emp => emp.id === id
-  );
+    const id = req.params.id;
 
-  if (index === -1) {
-    return res.status(404).json({
-      message: "Employee Not Found"
+    const employee = await Employee.findById(id);
+
+    if (!employee) {
+      return res.status(404).json({
+        message: "Employee Not Found"
+      });
+    }
+
+    await Employee.findByIdAndDelete(id);
+
+    res.status(200).json({
+      message: "Employee Deleted Successfully"
     });
+
+  } catch (err) {
+
+    res.status(500).json({
+      message: err.message
+    });
+
   }
 
-  employees.splice(index, 1);
-
-  res.status(200).json({
-    message: "Employee Deleted Successfully"
-  });
-
 };
-
 
 module.exports = {
   getAllEmployees,
