@@ -1,13 +1,12 @@
 const Employee=require("../model/employeeSchema");
 
-
 // GET ALL EMPLOYEES
 
 const getAllEmployees = async (req, res) => {
 
     try {
 
-        const employees = await Employee.find();
+        const employees = await Employee.find().sort({ createdAt: -1 });
 
         res.status(200).json(employees);
 
@@ -20,7 +19,6 @@ const getAllEmployees = async (req, res) => {
     }
 
 };
-
 
 // GET SINGLE EMPLOYEE
 
@@ -40,9 +38,7 @@ const getEmployeeById =async (req, res) => {
 
 };
 
-
 // ADD EMPLOYEE
-
 
 const addEmployee = async (req, res) => {
 
@@ -50,7 +46,27 @@ const addEmployee = async (req, res) => {
 
     const { name, email, department, salary } = req.body;
 
+    // Check if email already exists
+    const existingEmployee = await Employee.findOne({ email });
+
+    if (existingEmployee) {
+      return res.status(400).json({
+        message: "Employee with this email already exists."
+      });
+    }
+
+    // Generate Employee ID
+    const lastEmployee = await Employee.findOne().sort({ employeeId: -1 });
+
+    let employeeId = "EMP0001";
+
+    if (lastEmployee && lastEmployee.employeeId) {
+      const lastNumber = parseInt(lastEmployee.employeeId.replace("EMP", ""));
+      employeeId = `EMP${String(lastNumber + 1).padStart(4, "0")}`;
+    }
+
     const newEmployee = new Employee({
+      employeeId,
       name,
       email,
       department,
@@ -73,7 +89,6 @@ const addEmployee = async (req, res) => {
   }
 
 };
-
 
 // UPDATE EMPLOYEE
 
@@ -115,7 +130,6 @@ const updateEmployee = async (req, res) => {
   }
 
 };
-
 
 // DELETE EMPLOYEE
 
