@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -22,9 +24,7 @@ app.get("/", (req, res) => {
 const PORT = process.env.PORT || 5100;
 
 // MongoDB Connection
-mongoose.connect(
-    "mongodb+srv://Shubhamsinha:hJjEqd5LwiTPkfm7@cluster0.hl6bb20.mongodb.net/EMS?retryWrites=true&w=majority"
-)
+mongoose.connect(process.env.MONGO_URI)
 .then(() => {
 
     console.log("✅ Connected to MongoDB");
@@ -36,6 +36,7 @@ mongoose.connect(
 })
 .catch((err) => {
 
+    console.log("❌ MongoDB Connection Error");
     console.log(err);
 
 });
